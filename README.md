@@ -18,6 +18,27 @@ The installer creates a symbolic link for every managed skill in both locations:
 
 It preserves a non-symlinked skill with the same name and reports the conflict instead of overwriting it.
 
+### Important: `--recurse-submodules`
+
+The `--recurse-submodules` flag is **required** to clone upstream skills (no-ai-slop, shuorenhua, etc.). Without it, the `upstreams/` directory will be empty and those skills won't be available.
+
+**If you already cloned without `--recurse-submodules`:**
+
+```bash
+cd ~/src/skills
+git submodule update --init --recursive
+~/src/skills/scripts/install.sh
+```
+
+### Verify installation
+
+After running `install.sh`, confirm all 7 skills are linked:
+
+```bash
+ls -la ~/.claude/skills/ | grep -E "transcript|commit|article|slop|shuorenhua|ste100"
+# Should show symlinks to all 7 skills
+```
+
 ## Update
 
 Update this repository and its pinned upstream versions:
