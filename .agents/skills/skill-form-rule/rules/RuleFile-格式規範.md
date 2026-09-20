@@ -1,6 +1,7 @@
 # Rule 1 - 每條規則使用固定結構
 
-- RuleFile 必須直接從 `# Rule 1` 開始，不加入檔案標題或 Purpose section；適用範圍由檔名與 `SKILL.md` 的引用說明。
+- RuleFile 必須直接從 `# Rule 1 - <Rule name>` 開始，不得加入檔案標題或 Purpose section；適用範圍由檔名與 `SKILL.md`
+  的引用說明。
 - RuleFile 必須包含一條或多條規則。
 - 每條規則必須以 `# Rule N - <Rule name>` 作為標題。
 - `N` 必須從 `1` 開始連續編號。
@@ -34,7 +35,7 @@ Invalid input.
 
 ## Bad Example
 
-- 編號不連續且缺少 `## Bad Example`，無法用固定結構完整檢查這條規則。
+- 編號不連續，且缺少 `## Bad Example`，無法用固定結構完整檢查這條規則。
 
 ```markdown
 # Rule 3 - 錯誤訊息
@@ -118,41 +119,44 @@ Rule 2: 資料庫 table 必須使用 snake_case
 內文：每條規則必須有標題, 格式應該清楚.
 ```
 
-# Rule 5 - RuleFile 必須由 SKILL.md 明確引用
+# Rule 5 - RuleFile 必須由 SKILL.md 按需載入
 
 - 擁有 RuleFile 的 `SKILL.md` 必須指定 RuleFile 的相對路徑。
-- 引用說明必須指定讀取時機，並要求 Agent 以所有 Rule 作為完成檢查清單。
+- RuleFile 的路徑必須只出現在實際讀取該檔案的 `READ` 步驟。
+- `READ` 步驟必須指定適用的任務或條件。
+- `READ` 步驟必須在確認 RuleFile 適用後，且在第一個依賴該 RuleFile 的 `THINK`、`WRITE` 或 `CHECK` 步驟之前執行。
+- 擁有多個 RuleFile 時，`SKILL.md` 必須只載入當前任務需要的 RuleFile。
+- `READ` 步驟必須讀取適用 RuleFile 的所有 Rule，並為載入結果指定明確名稱。
+- 後續步驟必須使用該名稱引用載入結果，不得重複 RuleFile 的路徑。
 
 ## Good Example
 
-- `SKILL.md` 指定了檔案路徑、讀取時機與完成條件。
+- 流程先確認 RuleFile 適用，再於第一個依賴步驟前載入所有 Rule 並命名結果。
 
 ```markdown
-撰寫或修改 `rules/` 底下的 RuleFile 前，先讀取
-`rules/RuleFile-格式規範.md`，並逐條檢查輸出是否符合所有規則。
+1. `READ` 使用者需求與目標檔案。
+2. `THINK` 確認任務是否涉及 API 錯誤訊息。
+3. `READ` 任務涉及 API 錯誤訊息時，讀取 `rules/API-錯誤訊息格式規範.md` 的所有 Rule，建立錯誤訊息檢查清單。
+4. `THINK` 依已載入的錯誤訊息檢查清單設計內容。
+5. `WRITE` 寫入錯誤訊息。
+6. `CHECK` 逐條驗證錯誤訊息檢查清單。
 ```
 
 ## Bad Example
 
-- `SKILL.md` 只提到有規範可參考，沒有提供路徑、觸發時機或完成條件。
+- RuleFile 在確認適用前就載入，且路徑在後續步驟重複出現。
 
 ```markdown
-需要時參考 rules 內的規範。
+1. `READ` 使用者需求與 `rules/API-錯誤訊息格式規範.md`。
+2. `THINK` 確認任務是否涉及 API 錯誤訊息。
+3. `WRITE` 依 `rules/API-錯誤訊息格式規範.md` 修改內容。
+4. `CHECK` 內容是否符合 `rules/API-錯誤訊息格式規範.md`。
 ```
 
 # Rule 6 - 規則說明必須可執行且可檢查
 
-- 在 Rule 標題下使用條列描述規則。
+- 規則說明必須在 Rule 標題下使用條列描述。
 - 每項說明必須指出要求的行為、格式或限制，使 Agent 能判斷輸出是否符合規則。
-- 規範性要求必須使用以下受控用語：
-
-  | 用語 | 意義 |
-  | --- | --- |
-  | `必須` | 強制要求 |
-  | `不得` | 明確禁止 |
-  | `可以` | 允許但非必要 |
-
-- 不得使用「應該」、「盡量」或「適當」等缺少可檢查邊界的用語。
 - 需要定義欄位、對應關係或較複雜的格式時，可以使用 Markdown table 或 code block 補充。
 
 ## Good Example
@@ -171,7 +175,38 @@ Rule 2: 資料庫 table 必須使用 snake_case
 - 規則的格式應該清楚。
 ```
 
-# Rule 7 - Example 必須使用適合內容的原生格式
+# Rule 7 - 規則強度必須使用固定用詞
+
+- Rule 標題不得加入 `[LEVEL]`；規範強度必須由規則說明中的固定用詞表達。
+- 硬性要求必須使用「必須」；禁止行為必須使用「不得」。
+- 預設應遵守、但在任務情境提供具體理由時可以偏離的要求，必須使用「應」。
+- 不影響合規性的選項必須使用「可以」。
+- 規則說明不得使用「盡量」、「最好」或「原則上」等未定義的強度用詞。
+- 每個獨立要求必須明確使用一種規範強度；不同強度的獨立要求必須拆成不同條列。
+
+## Good Example
+
+- 各條說明使用固定用詞表達強度，並將不同強度的獨立要求拆開。
+
+```markdown
+# Rule 3 - Log 的內容
+
+- Log 應包含 request ID。
+- 執行環境無法取得 request ID 時，可以省略 request ID。
+- 省略 request ID 時，必須說明原因。
+```
+
+## Bad Example
+
+- 「盡量」沒有定義規範強度，Agent 無法一致判斷是否必須遵守。
+
+```markdown
+# Rule 3 - Log 的內容
+
+- Log 盡量包含 request ID。
+```
+
+# Rule 8 - Example 必須使用適合內容的原生格式
 
 - `## Good Example` 與 `## Bad Example` 中，說明之後的示範本體必須使用最能呈現其結構的原生格式。
 - 程式碼、設定檔、命令或字面輸出必須使用 code block，並標記適合的語言；純文字輸出使用 `text`。
@@ -183,10 +218,10 @@ Rule 2: 資料庫 table 必須使用 snake_case
 
 - 範例要比較欄位的必要性與用途，因此使用可直接閱讀的原生 Markdown table。
 
-| 欄位 | 必要性 | 用途 |
-| --- | --- | --- |
-| `name` | 必須 | 識別 Rule |
-| `description` | 必須 | 說明檢查條件 |
+| 欄位          | 必要性 | 用途         |
+| ------------- | ------ | ------------ |
+| `name`        | 必須   | 識別 Rule    |
+| `description` | 必須   | 說明檢查條件 |
 
 ## Bad Example
 
@@ -194,18 +229,19 @@ Rule 2: 資料庫 table 必須使用 snake_case
 
 ````markdown
 ```markdown
-| 欄位 | 必要性 | 用途 |
-| --- | --- | --- |
-| `name` | 必須 | 識別 Rule |
+| 欄位   | 必要性 | 用途      |
+| ------ | ------ | --------- |
+| `name` | 必須   | 識別 Rule |
 ```
 ````
 
-# Rule 8 - 正反範例必須具體展示規則差異
+# Rule 9 - 正反範例必須具體展示規則差異
 
 - `## Good Example` 必須包含一段簡短說明，指出範例符合規則的原因。
 - `## Bad Example` 必須包含一段簡短說明，指出範例違反規則的位置或差異。
-- 每個 Example section 必須提供至少一個完整範例，並依 Rule 7 選擇示範本體的格式。
-- 每個 Example section 可以提供多組範例；只有一組時不加子標題，多組時必須使用 `### Example 1`、`### Example 2` 連續編號。
+- 每個 Example section 必須提供至少一個完整範例，並依 Rule 8 選擇示範本體的格式。
+- 每個 Example section 可以提供多組範例；只有一組時不加子標題，多組時必須使用 `### Example 1`、`### Example 2`
+  連續編號。
 - Good Example 與 Bad Example 必須針對同一個規則重點與情境，讓讀者能直接比較差異。
 
 ## Good Example
