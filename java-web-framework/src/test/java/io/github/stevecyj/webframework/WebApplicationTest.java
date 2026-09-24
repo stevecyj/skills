@@ -4,6 +4,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.github.stevecyj.webframework.example.InMemoryUserRepository;
+import io.github.stevecyj.webframework.example.UserController;
+import io.github.stevecyj.webframework.example.UserRepository;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -72,6 +75,29 @@ class WebApplicationTest {
                 () -> app.route("GET", "items", request -> Response.text(200, "invalid")));
         assertThrows(IllegalArgumentException.class,
                 () -> app.route("GET", "/items/{id}/{id}", request -> Response.text(200, "invalid")));
+    }
+
+    @Test
+    void injectsControllerServiceAndRepositoryForHttpRequests() throws Exception {
+        int port = availablePort();
+        WebApplication app = new WebApplication()
+                .bind(UserRepository.class, InMemoryUserRepository.class)
+                .route("GET", "/users/{id}", UserController.class)
+                .route("GET", "/lambda", request -> Response.text(200, "still works"));
+
+        app.start(port);
+        try {
+            assertEquals("Ada", send(port, "GET", "/users/42", null, false).body());
+            assertEquals(404, send(port, "GET", "/users/missing", null, false).statusCode());
+            assertEquals("still works", send(port, "GET", "/lambda", null, false).body());
+            assertThrows(IllegalStateException.class,
+                    () -> app.bind(UserRepository.class, InMemoryUserRepository.class));
+        } finally {
+            app.stop();
+        }
+
+        assertThrows(IllegalStateException.class,
+                () -> new WebApplication().route("GET", "/users/{id}", UserController.class));
     }
 
     private static int availablePort() throws IOException {
