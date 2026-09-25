@@ -8,9 +8,9 @@
 
 情境：
 
-- 已確認的 RuleFile：`rules/API-錯誤訊息格式規範.md`。
+- 已確認的 RuleFile：`rules/API-錯誤訊息-格式規範.md`。
 - 已確認的 Rule：錯誤訊息必須指出失敗欄位。
-- 委派內容：使用 `skill-form-rule` 建立 `rules/API-錯誤訊息格式規範.md`，只寫入「錯誤訊息必須指出失敗欄位」這條 Rule。
+- 委派內容：使用 `skill-form-rule` 建立 `rules/API-錯誤訊息-格式規範.md`，只寫入「錯誤訊息必須指出失敗欄位」這條 Rule。
 
 ## Bad Example
 
@@ -18,6 +18,6 @@
 
 情境：
 
-- 已確認的 RuleFile：`rules/API-錯誤訊息格式規範.md`。
+- 已確認的 RuleFile：`rules/API-錯誤訊息-格式規範.md`。
 - 已確認的 Rule：錯誤訊息必須指出失敗欄位。
 - 委派內容：使用 `skill-form-rule` 建立適合的 API 錯誤訊息規則，並補充其他可能需要的 Rule。

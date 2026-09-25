@@ -55,7 +55,7 @@ Invalid input.
 
 ## Good Example
 
-- `CLI-錯誤訊息格式規範.md` 內的兩條 Rule 都屬於 CLI 錯誤訊息主題。
+- `CLI-錯誤訊息-格式規範.md` 內的兩條 Rule 都屬於 CLI 錯誤訊息主題。
 
 ```text
 Rule 1: 錯誤訊息必須指出失敗原因
@@ -136,7 +136,7 @@ Rule 2: 資料庫 table 必須使用 snake_case
 ```markdown
 1. `READ` 使用者需求與目標檔案。
 2. `THINK` 確認任務是否涉及 API 錯誤訊息。
-3. `READ` 任務涉及 API 錯誤訊息時，讀取 `rules/API-錯誤訊息格式規範.md` 的所有 Rule，建立錯誤訊息檢查清單。
+3. `READ` 任務涉及 API 錯誤訊息時，讀取 `rules/API-錯誤訊息-格式規範.md` 的所有 Rule，建立錯誤訊息檢查清單。
 4. `THINK` 依已載入的錯誤訊息檢查清單設計內容。
 5. `WRITE` 寫入錯誤訊息。
 6. `CHECK` 逐條驗證錯誤訊息檢查清單。
@@ -147,10 +147,10 @@ Rule 2: 資料庫 table 必須使用 snake_case
 - RuleFile 在確認適用前就載入，且路徑在後續步驟重複出現。
 
 ```markdown
-1. `READ` 使用者需求與 `rules/API-錯誤訊息格式規範.md`。
+1. `READ` 使用者需求與 `rules/API-錯誤訊息-格式規範.md`。
 2. `THINK` 確認任務是否涉及 API 錯誤訊息。
-3. `WRITE` 依 `rules/API-錯誤訊息格式規範.md` 修改內容。
-4. `CHECK` 內容是否符合 `rules/API-錯誤訊息格式規範.md`。
+3. `WRITE` 依 `rules/API-錯誤訊息-格式規範.md` 修改內容。
+4. `CHECK` 內容是否符合 `rules/API-錯誤訊息-格式規範.md`。
 ```
 
 # Rule 6 - 規則說明必須可執行且可檢查
