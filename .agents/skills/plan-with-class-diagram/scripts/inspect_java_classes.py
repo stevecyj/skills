@@ -3,7 +3,11 @@
 # dependencies = ["tree-sitter>=0.25,<0.27", "tree-sitter-java>=0.23.5,<0.24"]
 # ///
 
-"""Print a bounded, parser-derived view of Java type relationships."""
+"""Print a bounded, parser-derived view of Java type relationships.
+
+Types are traversed through inheritance, fields, and signatures. Project types
+referenced only in method bodies are listed in body_references and are not
+traversed."""
 
 import argparse
 import json
@@ -26,6 +30,7 @@ TYPE_KINDS = {
 IGNORED_DIRS = {".git", ".gradle", ".idea", "build", "node_modules", "out", "target"}
 RELATION_ORDER = {"extends": 0, "implements": 1, "field": 2, "signature": 3}
 UNRESOLVED_SAMPLE_LIMIT = 30
+RECEIVER_OWNERS = {"method_invocation", "field_access"}
 
 
 def source_text(source, node):
@@ -219,6 +224,45 @@ def references(declaration, source):
     )
 
 
+def members(body):
+    for child in body.named_children:
+        if child.type == "enum_body_declarations":
+            yield from members(child)
+        else:
+            yield child
+
+
+def body_references(declaration, source):
+    body = declaration.child_by_field_name("body")
+    if body is None:
+        return set()
+    class_parameters = type_parameters(declaration, source)
+    names = set()
+    for member in members(body):
+        if member.type in TYPE_KINDS:
+            continue
+        excluded = class_parameters | type_parameters(member, source)
+        stack = [member]
+        while stack:
+            node = stack.pop()
+            if node.type in TYPE_KINDS:
+                continue
+            if node.type in {"type_identifier", "scoped_type_identifier"}:
+                names.update(name for name in type_names(source, node) if name not in excluded)
+                continue
+            receiver = None
+            if node.type in RECEIVER_OWNERS:
+                receiver = node.child_by_field_name("object")
+            elif node.type == "method_reference" and node.named_children:
+                receiver = node.named_children[0]
+            if receiver is not None and receiver.type == "identifier":
+                name = source_text(source, receiver)
+                if name[:1].isupper() and name not in excluded:
+                    names.add(name)
+            stack.extend(node.named_children)
+    return names
+
+
 def resolve_reference(
     name, current_name, current_path, source, root, package, imports, wildcard_imports, index
 ):
@@ -270,6 +314,7 @@ def inspect(project_root, entry, max_classes):
     resolved = set()
     unresolved = set()
     invalid = set()
+    body_found = set()
 
     while pending and len(selected) < max_classes:
         qualified_name, path = pending.popleft()
@@ -306,6 +351,12 @@ def inspect(project_root, entry, max_classes):
             if target not in queued:
                 queued.add(target)
                 pending.append((target, target_path))
+        for name in body_references(declaration, source):
+            target, target_path, _ = resolve_reference(
+                name, qualified_name, path, source, root, package, imports, wildcard_imports, index
+            )
+            if target is not None and target != qualified_name:
+                body_found.add((qualified_name, target, target_path.relative_to(project_root).as_posix()))
 
     relations = [
         {"from": source, "to": target, "kind": relation}
@@ -314,6 +365,9 @@ def inspect(project_root, entry, max_classes):
     ]
     unresolved_items = sorted(unresolved)
     omitted = {target for _, _, target in resolved if target not in selected}
+    body_items = sorted(
+        item for item in body_found if item[1] not in selected and item[1] not in invalid
+    )
     return {
         "entry": entry,
         "max_classes": max_classes,
@@ -326,6 +380,11 @@ def inspect(project_root, entry, max_classes):
         "unresolved_reference_count": len(unresolved_items),
         "omitted_class_count": len(omitted),
         "truncated": bool(pending),
+        "body_references": [
+            {"from": source, "type": target, "path": target_path}
+            for source, target, target_path in body_items[:UNRESOLVED_SAMPLE_LIMIT]
+        ],
+        "body_reference_count": len(body_items),
     }
 
 
