@@ -16,21 +16,22 @@ public final class WebApplication {
         return this;
     }
 
+    /** Registers a handler, adding request and response logging when its class is {@link Logged}. */
     public synchronized WebApplication route(String method, String pattern, Handler handler) {
         if (adapter != null) {
             throw new IllegalStateException("Cannot register routes while the server is running");
         }
-        router.register(method, pattern, handler);
+        router.register(method, pattern, LoggingHandler.decorate(handler));
         return this;
     }
 
-    /** Resolves a controller and its dependencies before registering the route. */
+    /** Resolves a controller and its dependencies, then registers it like a handler instance. */
     public synchronized WebApplication route(
             String method, String pattern, Class<? extends Handler> handlerType) {
         if (adapter != null) {
             throw new IllegalStateException("Cannot register routes while the server is running");
         }
-        router.register(method, pattern, container.resolve(handlerType));
+        router.register(method, pattern, LoggingHandler.decorate(container.resolve(handlerType)));
         return this;
     }
 

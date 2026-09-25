@@ -1,11 +1,13 @@
 package io.github.stevecyj.webframework.example;
 
 import io.github.stevecyj.webframework.Handler;
+import io.github.stevecyj.webframework.Logged;
 import io.github.stevecyj.webframework.Request;
 import io.github.stevecyj.webframework.Response;
 import java.util.Objects;
 
 /** Handles the example route using a service supplied by the container. */
+@Logged
 public final class UserController implements Handler {
     private final UserService service;
 

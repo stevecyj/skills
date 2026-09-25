@@ -67,4 +67,26 @@ curl -i http://127.0.0.1:8080/users/missing
 # HTTP/1.1 404 Not Found
 ```
 
+## Request logging
+
+Annotate a controller class with `@Logged` to log each request it receives and each response it returns:
+
+```java
+@Logged
+public final class UserController implements Handler {
+    // ...
+}
+```
+
+The annotation works for class routes and `Handler` instance routes. Logs use `System.Logger`, named after the controller class, at `INFO`; a controller exception is logged at `WARNING` and still returns 500. Requests that never reach a controller, such as 404, 405, and malformed-query 400 responses, are not logged. Lambda routes cannot carry the annotation.
+
+The example `UserController` is annotated, so the requests above print:
+
+```text
+INFO: --> GET /users/42
+INFO: <-- 200 GET /users/42 (0 ms)
+INFO: --> GET /users/missing
+INFO: <-- 404 GET /users/missing (0 ms)
+```
+
 Run tests with `mvn test` from this directory.
